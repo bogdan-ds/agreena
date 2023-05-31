@@ -15,7 +15,7 @@ app = FastAPI()
 @app.post("/fetch_image")
 async def fetch_image(bbox: BoundingBox):
     try:
-        file = get_image(bbox, config.download_path)
+        file = await get_image(bbox, config.download_path)
         return FileResponse(file)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -24,11 +24,11 @@ async def fetch_image(bbox: BoundingBox):
 @app.post("/custom_image_upload", status_code=201)
 def custom_image_upload(bbox: BoundingBox = Depends(),
                         file: UploadFile = File(...)):
+    extension = file.filename.split(".")[-1]
+    if extension == "png":
+        raise HTTPException(status_code=400,
+                            detail="PNG files not supported.")
     try:
-        extension = file.filename.split(".")[-1]
-        if extension == "png":
-            raise HTTPException(status_code=400,
-                                detail="PNG files not supported.")
         contents = file.file.read()
         filename = bbox.serialize() + f".{extension}"
         with open(os.path.join(config.download_path, filename), "wb") as f:
@@ -41,9 +41,9 @@ def custom_image_upload(bbox: BoundingBox = Depends(),
 
 
 @app.post("/get_image_colour")
-def get_image_colour(bbox: BoundingBox):
+async def get_image_colour(bbox: BoundingBox):
     try:
-        file = get_image(bbox, config.download_path)
+        file = await get_image(bbox, config.download_path)
         rgb = get_predominant_rgb_colour_in_image(file)
         colour_name = rgb_to_colour_name(rgb)
         return {"colour": colour_name}

@@ -7,7 +7,7 @@ from src.sentinel_client import SentinelClient
 from src.utils import find_bbox_file
 
 
-def get_image(bbox: BoundingBox, path: str) -> str:
+async def get_image(bbox: BoundingBox, path: str) -> str:
     """Get image from Sentinel Hub or local cache.
 
     Args:
